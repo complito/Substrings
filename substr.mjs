@@ -47,7 +47,7 @@ if (process.argv[2] == '-hashRabinKarp') {
     }
 
     const constant = 2;
-    const q = 3571;
+    const q = 27644437;
     let h = 1;
     let stringHash = 0;
     let substringHash = 0;
