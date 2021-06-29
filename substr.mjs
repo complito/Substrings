@@ -10,14 +10,34 @@ const substring = readFileSync(process.argv[4], 'utf8');
 let foundSubstringIndexes = [];
 let indexForIndexes = 0;
 let collisionsNumber = 0;
+let comparionsAndFindability = {
+    characterComparisonsnumber: 0,
+    isSubstringFound: false
+};
 
 function isSubstringFound(startIndex, comparionsAndFindability) {
     for (let i = 0; i < substring.length; ++i) {
         ++comparionsAndFindability.characterComparisonsnumber;
-        if (string.charAt(startIndex + i) != substring.charAt(i))
+        if (string.charAt(startIndex + i) != substring.charAt(i)) {
             comparionsAndFindability.isSubstringFound = false;
+            return;
+        } 
     }
     comparionsAndFindability.isSubstringFound = true;
+}
+function printStatistics(workingHours) {
+    console.log(`Время выполнения программы: ${workingHours} мс`);
+    console.log(`Количество посимвольных сравнений: ${comparionsAndFindability.characterComparisonsnumber}`);
+    console.log(`Количество найденных подстрок: ${foundSubstringIndexes.length}`);
+    if (foundSubstringIndexes.length != 0) {
+        let indexes = '';
+        for (let i = 0; i < foundSubstringIndexes.length && i < 10; ++i)
+            if (i + 1 != foundSubstringIndexes.length && i + 1 < 10)
+                indexes += (`${foundSubstringIndexes[i]}, `);
+            else indexes += (foundSubstringIndexes[i]);
+        console.log(`Первые 10 индексов вхождений подстроки: ${indexes}`);
+    }
+    console.log(`Количество коллизий: ${collisionsNumber}`);
 }
 
 if (process.argv[2] == '-hashRabinKarp') {
@@ -31,10 +51,6 @@ if (process.argv[2] == '-hashRabinKarp') {
     let stringHash = 0;
     let substringHash = 0;
     let lastCharCodeOfString = string.charCodeAt(0);
-    let comparionsAndFindability = {
-        characterComparisonsnumber: 0,
-        isSubstringFound: false
-    };
 
     for (let i = 0; i < substring.length; ++i) {
         stringHash = stringHash + string.charCodeAt(i) * Math.pow(constant, substring.length - 1 - i);
@@ -55,17 +71,19 @@ if (process.argv[2] == '-hashRabinKarp') {
     }
     const endTime = new Date().getTime();
 
-    console.log(`Время выполнения программы: ${endTime - startTime} мс`);
-    console.log(`Количество найденных подстрок: ${foundSubstringIndexes.length}`);
-    if (foundSubstringIndexes.length != 0) {
-        let indexes = '';
-        for (let i = 0; i < foundSubstringIndexes.length; ++i)
-            if (i + 1 != foundSubstringIndexes.length)
-                indexes += (`${foundSubstringIndexes[i]}, `);
-            else indexes += (foundSubstringIndexes[i]);
-        console.log(`Первые 10 индексов вхождений подстроки: ${indexes}`);
+    printStatistics(endTime - startTime);
+}
+else if (process.argv[2] == '-bruteForce') {
+    const startTime = new Date().getTime();
+    for (let i = 0; i < string.length - substring.length; ++i) {
+        isSubstringFound(i, comparionsAndFindability);
+        if (comparionsAndFindability.isSubstringFound)
+            foundSubstringIndexes[indexForIndexes++] = i;
+        comparionsAndFindability.isSubstringFound = false;
     }
-    console.log(`Количество коллизий: ${collisionsNumber}`);
+    const endTime = new Date().getTime();
+
+    printStatistics(endTime - startTime);
 }
 else {
     console.log('Ошибка: неизвестная комманда');
