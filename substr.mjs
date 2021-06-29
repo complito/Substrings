@@ -14,13 +14,10 @@ let collisionsNumber = 0;
 function isSubstringFound(startIndex, comparionsAndFindability) {
     for (let i = 0; i < substring.length; ++i) {
         ++comparionsAndFindability.characterComparisonsnumber;
-        if (string.charAt(startIndex + i) != substring.charAt(i)) {
+        if (string.charAt(startIndex + i) != substring.charAt(i))
             comparionsAndFindability.isSubstringFound = false;
-            return comparionsAndFindability;
-        }
     }
     comparionsAndFindability.isSubstringFound = true;
-    return comparionsAndFindability;
 }
 
 if (process.argv[2] == '-hashRabinKarp') {
@@ -30,7 +27,7 @@ if (process.argv[2] == '-hashRabinKarp') {
         process.exit(2);
     }
 
-    const constant = 10;
+    const constant = 6;
     let stringHash = 0;
     let substringHash = 0;
     let lastCharCodeOfString = string.charCodeAt(0);
@@ -46,7 +43,7 @@ if (process.argv[2] == '-hashRabinKarp') {
     
     for (let i = 0; ; ++i) {
         if (stringHash == substringHash) {
-            comparionsAndFindability = isSubstringFound(i, comparionsAndFindability)
+            isSubstringFound(i, comparionsAndFindability);
             if (comparionsAndFindability.isSubstringFound)
                 foundSubstringIndexes[indexForIndexes++] = i;
             else ++collisionsNumber;
@@ -66,10 +63,9 @@ if (process.argv[2] == '-hashRabinKarp') {
             if (i + 1 != foundSubstringIndexes.length)
                 indexes += (`${foundSubstringIndexes[i]}, `);
             else indexes += (foundSubstringIndexes[i]);
-        console.log(`Первые 10 найденных вхождений подстроки: ${indexes}`);
+        console.log(`Первые 10 индексов вхождений подстроки: ${indexes}`);
     }
     console.log(`Количество коллизий: ${collisionsNumber}`);
-
 }
 else {
     console.log('Ошибка: неизвестная комманда');
