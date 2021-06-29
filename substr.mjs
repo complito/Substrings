@@ -1,13 +1,13 @@
 if (process.argv[2] == '-h') {
-    console.log('...');
+    console.log('Пример запуска программы: node substr.mjs -hashRabinKarp/-bruteForce/-automatou string.txt template.txt');
     process.exit(0);
 }
 
 import { readFileSync } from 'fs';
 
-const string = readFileSync(process.argv[3], 'utf8');
+const string = readFileSync(process.argv[3], 'utf8');process.argv[3]
 const substring = readFileSync(process.argv[4], 'utf8');
-let foundSubstringIndexes = [];
+let foundSubstringIndexes = {};
 let indexForIndexes = 0;
 let collisionsNumber = 0;
 let comparionsAndFindability = {
@@ -28,11 +28,11 @@ function isSubstringFound(startIndex, comparionsAndFindability) {
 function printStatistics(workingHours) {
     console.log(`Время выполнения программы: ${workingHours} мс`);
     console.log(`Количество посимвольных сравнений: ${comparionsAndFindability.characterComparisonsnumber}`);
-    console.log(`Количество найденных подстрок: ${foundSubstringIndexes.length}`);
-    if (foundSubstringIndexes.length != 0) {
+    console.log(`Количество найденных подстрок: ${Object.keys(foundSubstringIndexes).length}`);
+    if (Object.keys(foundSubstringIndexes).length != 0) {
         let indexes = '';
-        for (let i = 0; i < foundSubstringIndexes.length && i < 10; ++i)
-            if (i + 1 != foundSubstringIndexes.length && i + 1 < 10)
+        for (let i = 0; i < Object.keys(foundSubstringIndexes).length && i < 10; ++i)
+            if (i + 1 != Object.keys(foundSubstringIndexes).length && i + 1 < 10)
                 indexes += (`${foundSubstringIndexes[i]}, `);
             else indexes += (foundSubstringIndexes[i]);
         console.log(`Первые 10 индексов вхождений подстроки: ${indexes}`);
@@ -41,22 +41,26 @@ function printStatistics(workingHours) {
 }
 
 if (process.argv[2] == '-hashRabinKarp') {
-    const startTime = new Date().getTime();
     if (string.length < substring.length) {
         console.log('Ошибка: длина подстроки больше, чем длина исходного текста');
         process.exit(2);
     }
 
-    const constant = 6;
+    const constant = 2;
+    const q = 3571;
+    let h = 1;
     let stringHash = 0;
     let substringHash = 0;
-    let lastCharCodeOfString = string.charCodeAt(0);
+
+    for (let i = 0; i < substring.length - 1; ++i)
+        h = (h * constant) % q;
 
     for (let i = 0; i < substring.length; ++i) {
-        stringHash = stringHash + string.charCodeAt(i) * Math.pow(constant, substring.length - 1 - i);
-        substringHash = substringHash + substring.charCodeAt(i) * Math.pow(constant, substring.length - 1 - i);
+        stringHash = (stringHash * constant + string.charCodeAt(i)) % q;
+        substringHash = (substringHash * constant + substring.charCodeAt(i)) % q;
     }
     
+    const startTime = new Date().getTime();
     for (let i = 0; ; ++i) {
         if (stringHash == substringHash) {
             isSubstringFound(i, comparionsAndFindability);
@@ -66,8 +70,8 @@ if (process.argv[2] == '-hashRabinKarp') {
             comparionsAndFindability.isSubstringFound = false;
         }
         if (i >= string.length - substring.length) break;
-        stringHash = (stringHash - lastCharCodeOfString * Math.pow(constant, substring.length - 1)) * constant + string.charCodeAt(i + substring.length);
-        lastCharCodeOfString = string.charCodeAt(i + 1);
+        stringHash = (constant * (stringHash - string.charCodeAt(i) * h) + string.charCodeAt(i + substring.length)) % q;
+        if (stringHash < 0) stringHash += q;
     }
     const endTime = new Date().getTime();
 
@@ -75,12 +79,38 @@ if (process.argv[2] == '-hashRabinKarp') {
 }
 else if (process.argv[2] == '-bruteForce') {
     const startTime = new Date().getTime();
-    for (let i = 0; i < string.length - substring.length; ++i) {
+    for (let i = 0; i <= string.length - substring.length; ++i) {
         isSubstringFound(i, comparionsAndFindability);
         if (comparionsAndFindability.isSubstringFound)
             foundSubstringIndexes[indexForIndexes++] = i;
         comparionsAndFindability.isSubstringFound = false;
     }
+    const endTime = new Date().getTime();
+
+    printStatistics(endTime - startTime);
+}
+else if (process.argv[2] == '-automatou') {
+    let jumpTable = [];
+    
+    for (let i = 0; i <= substring.length; ++i)
+        jumpTable[i] = [];
+    for (let i = 0; i < substring.length; ++i)
+        jumpTable[0][substring.charAt(i)] = 0;
+    for (let i = 0; i < substring.length; ++i) {
+        jumpTable[i][substring.charAt(i)] = i + 1;
+        for (let j = 0; j < substring.length; ++j)
+            jumpTable[i + 1][substring.charAt(j)] = jumpTable[i][substring.charAt(j)];
+    }
+
+    let automatouState = 0;
+    const startTime = new Date().getTime();
+    for (let i = 0; i < string.length; ++i)
+        if (jumpTable[automatouState][string.charAt(i)] == null) automatouState = 0;
+        else {
+            automatouState = jumpTable[automatouState][string.charAt(i)];
+            if (automatouState == substring.length)
+                foundSubstringIndexes[indexForIndexes++] = i - substring.length + 1;
+        }
     const endTime = new Date().getTime();
 
     printStatistics(endTime - startTime);
